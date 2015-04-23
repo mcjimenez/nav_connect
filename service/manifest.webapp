@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "name": "SW - SHIM - SERVER",
+  "name": "navConnService",
   "description": "Service worker - shim testing",
   "type": "certified",
   "launch_path": "/nav_connect/service/index.html",
