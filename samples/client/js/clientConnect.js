@@ -17,13 +17,10 @@
     debug('CLIENT sending postMessage:'+ JSON.stringify(msg));
     client.postMessage(msg);
     _removeChildren(_settingsEntries);
-    debug("_select.selectedIndex:"+_select.selectedIndex);
-    debug("selected:"+_select.options[_select.selectedIndex].value);
   }
 
   function _removeChildren(aParent) {
-    debug('CLIENT removed old elements');
-    while (aParent.hasChildNodes()){
+    while (aParent.hasChildNodes()) {
       aParent.removeChild(_settingsEntries.childNodes[0]);
     };
   }
@@ -31,7 +28,6 @@
   function _addTxt(txt, where) {
     var li = document.createElement('li');
     li.innerHTML = txt;
-    //_evtSectionEntries.appendChild(li);
     where.appendChild(li);
   }
 
@@ -41,7 +37,6 @@
 
   var ClientConnect = function() {
     var self = this;
-    debug('CLIENT Vamos a lanzar conexion');
     navigator.connect(URL_CONNECT).then(
       port => {
         self.port = port;
