@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cliente navigator.connect polyfill</title>
+  <meta name="description" content="Client of a Service provided by a service worker via a navigator.connect polyfill">
+
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="style/style.css">
+
+  <script type="text/javascript" defer src="polyfill/navigator_connect.js"></script>
+  <script type="text/javascript" defer src="js/clientConnect.js"></script>
+</head>
+<body>
+  <section class="panel">
+  <h1>client</h1>
+    <h2>Select Setting</h2>
+  <select name="select" id="selectSetting">
+    <!--option value="/style/icons/sms.png">SMS</option-->
+    <option value="ril.data.enabled">ril.data.enabled</option>
+    <option value="language.current">language.current</option>
+    <option value="locale.hour12">locale.hour12</option>
+  </select>
+  <p> Setting selected:
+  <div>
+    <ul id="settingsEntries">
+    </ul>
+  </dic>
+  <p>Ctrl msg:
+  <div>
+    <ul id="eventsEntries">
+    </ul>
+  </div>
+  </section>
+</body>
+</html>
