@@ -70,9 +70,9 @@ this.messageListener = evt => {
   // ADDED FOR POLYFILL
   // Since we're using the same channel to process messages comming from the
   // main thread of the app to the SW, and messages coming from the
-  // navigator.connect polyfill, we have to distinguish them here. Sadly we can't
-  // remove this even if we have MessageChannels because we have to pass the
-  // MessageChannels down (connection messages) somehow.
+  // navigator.connect polyfill, we have to distinguish them here. Sadly we
+  // can't remove this even if we have MessageChannels because we have to pass
+  // the MessageChannels down (connection messages) somehow.
   if (this.NCPolyfill.isInternalMessage(evt)) {
     debug('SW msg is internal, do not process');
     return;
