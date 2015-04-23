@@ -1,5 +1,5 @@
 {
-  "name": "navConnclient",
+  "name": "navConnClient",
   "description": "TEST Client Connect",
   "launch_path": "/nav_connect/client/index.html",
   "type": "certified",
