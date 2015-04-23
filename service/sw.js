@@ -11,7 +11,7 @@ function debug(str) {
 }
 
 // ADDED FOR POLYFILL: Import the polyfill script
-this.importScripts('/swpolyfill/polyfill/navigator_connect_sw.js');
+this.importScripts('/nav_connect/service/polyfill/navigator_connect_sw.js');
 // END ADDED FOR POLYFILL
 
 this.addEventListener('install', function(evt) {
