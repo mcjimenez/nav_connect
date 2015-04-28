@@ -7,7 +7,7 @@
   }
 
   function isAllowed(aUrl) {
-    debug('SERVICE::isAllowed url :' + url);
+    debug('SERVICE::isAllowed url :' + aUrl);
     debug('SERVICE --> config:' + JSON.stringify(sw.config.allowedFrom));
     var allowed = false;
     var allowedFrom = sw.config && sw.config.allowedFrom || {};
