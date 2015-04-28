@@ -8,7 +8,7 @@
   }
 
   function debug(str) {
-    // console.log("NC Polyfill (SW) -*-:" + str);
+    console.log("NC Polyfill (SW) -*-:" + str);
   }
 
   debug('Loaded!');

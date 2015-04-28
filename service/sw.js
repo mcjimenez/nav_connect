@@ -14,6 +14,9 @@ function debug(str) {
 this.importScripts('/nav_connect/service/polyfill/navigator_connect_sw.js');
 // END ADDED FOR POLYFILL
 
+this.importScripts('/nav_connect/service/js/config.js');
+this.importScripts('/nav_connect/service/js/service.js');
+
 this.addEventListener('install', function(evt) {
   debug('SW Install event');
 });
@@ -36,7 +39,8 @@ this.onconnect = function(msg) {
         (msg.source.postMessage ? 'yes!' : 'no :('));
   // msg.source should have the endpoint to send and receive messages,
   // so we can do:
-  msg.acceptConnection(true);
+  debug('SW Trying to connect from: ' + msg.targetURL);
+  msg.acceptConnection(utils.isAllowed(msg.targetURL));
   msg.source.onmessage = aMsg => {
     debug('SW SETTING msg received:' + JSON.stringify(aMsg.data));
     var setting = aMsg.data.setting;
@@ -86,10 +90,10 @@ this.messageListener = evt => {
   // The only message we should get here is a MessageChannel to talk back to
   // the main thread... so...
   if (evt.ports && evt.ports[0]) {
-    debug('Got a channel from the parent');
+    debug('SW Got a channel from the parent');
     this.resolveChannel(evt.ports[0]);
   } else {
-    debug('Did not got a channel!');
+    debug('SW Did not got a channel!');
     this.rejectChannel('I did not got a channel');
   }
   // And I can remove the listener, I don't need this anymore
