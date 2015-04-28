@@ -1,4 +1,4 @@
-(function(exports) {
+(function(sw) {
 
   'use strict';
 
@@ -8,12 +8,13 @@
 
   function isAllowed(url) {
     debug('SERVICE::isAllowed url :' + url);
+    debug('SERVICE --> config:' + JSON.stringify(sw.config.allowedFrom));
     return true;
   }
 
   debug('SERVICE --> loaded');
-  exports.utils = {
+  sw.utils = {
     isAllowed: isAllowed
   };
 
-})(window);
+})(self);

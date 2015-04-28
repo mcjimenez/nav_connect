@@ -40,7 +40,7 @@ this.onconnect = function(msg) {
   // msg.source should have the endpoint to send and receive messages,
   // so we can do:
   debug('SW Trying to connect from: ' + msg.targetURL);
-  msg.acceptConnection(utils.isAllowed(msg.targetURL));
+  msg.acceptConnection(this.utils.isAllowed(msg.targetURL));
   msg.source.onmessage = aMsg => {
     debug('SW SETTING msg received:' + JSON.stringify(aMsg.data));
     var setting = aMsg.data.setting;

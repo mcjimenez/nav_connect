@@ -7,4 +7,4 @@ var config = {
   }
 };
 
-window.config = config;
+self.config = config;
