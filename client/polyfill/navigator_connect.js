@@ -53,7 +53,7 @@
                 debug("SHIM ClIENT - Got the accept response: evt.data: " +
                       JSON.stringify(evt.data));
                 shimPort.onmessage = null;
-                evt.data.accepted && resolve(shimPort) || reject();
+                evt.data.accepted && resolve(shimPort) || reject('Connection not allowed');
               };
             }
           },
