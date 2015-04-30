@@ -33,6 +33,7 @@
 
   var TXT_MSG = 'Testing message';
   var URL_CONNECT = 'https://testServiceConnect.hostedweb.tid.es/services';
+  var URL_CONNECT2 = 'https://testServiceConnect2.hostedweb.tid.es/services';
   var NUM_MSG = 2;
 
   var ClientConnect = function() {
@@ -51,6 +52,23 @@
 
         for (var i = 0; i < NUM_MSG; i++) {
           debug('CLIENT Send msg ' + i);
+          port.postMessage({'origin': 'client', 'secuence': i});
+        }
+    });
+    navigator.connect(URL_CONNECT2).then(
+      port => {
+        self.port = port;
+        _addTxt("*2* navigator.connect 2 success. Adding listener!",
+                _evtSectionEntries);
+
+        port.onmessage = function(evt) {
+          // Handle reply from the service.
+          debug('*2* CLIENT msg received --> ' + JSON.stringify(evt.data));
+          _addTxt(evt.data ? JSON.stringify(evt.data): "no datas", whatEntry);
+        };
+
+        for (var i = 0; i < NUM_MSG; i++) {
+          debug('*2* CLIENT Send msg ' + i);
           port.postMessage({'origin': 'client', 'secuence': i});
         }
     });
