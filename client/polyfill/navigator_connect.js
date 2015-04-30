@@ -23,7 +23,11 @@
     },
 
     set onmessage(fc) {
-      this.iacPort.onmessage = evt => fc(evt);
+      this._onmessage = fc;
+    },
+
+    get onmessage() {
+      return this._onmessage;
     }
   };
 
