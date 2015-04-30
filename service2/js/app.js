@@ -2,7 +2,7 @@
   'use strict';
 
   function debug(str) {
-    console.log("CJC -*-:" + str);
+    console.log("CJC SER2  -*-:" + str);
   }
 
   // This is a very basic sample app that uses a SW and acts as a server for
@@ -13,7 +13,7 @@
 
   var register = function(evt) {
     debug('APP executing register...');
-    navigator.serviceWorker.register('/nav_connect/service/sw.js', {scope: './'}
+    navigator.serviceWorker.register('/nav_connect/service2/sw.js', {scope: './'}
     ).then(function(reg) {
       debug('APP Registration succeeded. Scope: ' + reg.scope);
       if (reg.installing) {
