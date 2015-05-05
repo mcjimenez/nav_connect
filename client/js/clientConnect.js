@@ -54,24 +54,34 @@
           debug('CLIENT Send msg ' + i);
           port.postMessage({'origin': 'client', 'secuence': i});
         }
-    });
-    navigator.connect(URL_CONNECT2).then(
-      port => {
-        self.port = port;
-        _addTxt("*2* navigator.connect 2 success. Adding listener!",
-                _evtSectionEntries);
+    }).catch(
+      error => {
+        debug('CLIENT connection refused:' + JSON.stringify(error));
+      }
+    );
 
-        port.onmessage = function(evt) {
-          // Handle reply from the service.
-          debug('*2* CLIENT msg received --> ' + JSON.stringify(evt.data));
-          _addTxt(evt.data ? JSON.stringify(evt.data): "no datas", whatEntry);
-        };
+//    navigator.connect(URL_CONNECT2).then(
+//      port => {
+//        self.port = port;
+//        _addTxt("*2* navigator.connect 2 success. Adding listener!",
+//                _evtSectionEntries);
+//
+//        port.onmessage = function(evt) {
+//          // Handle reply from the service.
+//          debug('*2* CLIENT msg received --> ' + JSON.stringify(evt.data));
+//          _addTxt(evt.data ? JSON.stringify(evt.data): "no datas", whatEntry);
+//        };
+//
+//        for (var i = 0; i < NUM_MSG; i++) {
+//          debug('*2* CLIENT Send msg ' + i);
+//          port.postMessage({'origin': 'client', 'secuence': i});
+//        }
+//    }).catch(
+//      error => {
+//        debug('CLIENT 2 connection refused:' + JSON.stringify(error));
+//      }
+//    );
 
-        for (var i = 0; i < NUM_MSG; i++) {
-          debug('*2* CLIENT Send msg ' + i);
-          port.postMessage({'origin': 'client', 'secuence': i});
-        }
-    });
   };
 
   ClientConnect.prototype = {
@@ -87,4 +97,5 @@
     _select.addEventListener('change', changeSelect);
     _select.selectedIndex = 0;
   });
+
 })(this);

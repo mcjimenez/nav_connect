@@ -97,6 +97,8 @@
               messageChannel.port1.onmessage(event);
 
             } else {
+              debug('POLYFILL SVR send reject msg?:' + event.data);
+              serverPort.postMessage(event.data);
               delete messageChannel.port1;
             }
           }

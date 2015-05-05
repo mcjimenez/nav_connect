@@ -42,6 +42,7 @@
     // Your code here
     // from this point on, you would write your handler as if the shim wasn't
     // present.
+    debug('APP processSWRequest:'+JSON.stringify(evt.data));
     var sett = evt.data.setting;
     if (!sett) {
       // Return no setting msg

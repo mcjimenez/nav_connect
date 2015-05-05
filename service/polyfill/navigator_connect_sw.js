@@ -56,7 +56,7 @@
       }
       aPromise.then(accepted => {
         debug('POLYFILL SW acceptConnection accepted:' + accepted);
-        connectionMessage.source.postMessage({accepted: accepted});
+        connectionMessage.source.postMessage({ accepted: accepted });
         // Now if we've *not* accepted the connection, we can clean up here
         if (!accepted) {
           delete connectionMessage.source;
