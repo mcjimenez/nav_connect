@@ -57,6 +57,7 @@
     }).catch(
       error => {
         debug('CLIENT connection refused:' + JSON.stringify(error));
+        _addTxt('navigator.connect failed. ' + error);
       }
     );
 
