@@ -61,6 +61,7 @@
     debug('APP serviceWorker in navigator');
     register();
     navigator.serviceWorker.ready.then(sw => {
+      debug('APP --> SW READY creating messageChannel');
       // Let's pass the SW some way to talk to us...
       var mc = new MessageChannel();
       mc.port1.onmessage = processSWRequest.bind(this, mc.port1);

@@ -64,7 +64,7 @@
       });
     };
 
-    if (sw.onconnect && typeof sw.onconnect == "function") {
+    if (sw.onconnect && typeof sw.onconnect === "function") {
       debug('POLYFILL SW executing onConnect with --> ' +
             JSON.stringify(connectionMessage));
       sw.onconnect(connectionMessage);

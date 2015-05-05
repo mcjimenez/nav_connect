@@ -46,20 +46,24 @@
 
   }
 
-  // Sends a message to the SW shim part. Note that this will be used only for connections
-  // serverPort will hold the IAC port we will use to transmit the answers on this
-  // channel to. Note that at this point the IAC channel is *not* multiplexed, so there's
-  // one IAC channel (and one MessageChannel) per navigator.connect call.
+  // Sends a message to the SW shim part. Note that this will be used only for
+  // connections serverPort will hold the IAC port we will use to transmit the
+  // answers on this channel to. Note that at this point the IAC channel is
+  // *not* multiplexed, so there's one IAC channel (and one MessageChannel) per
+  // navigator.connect call.
   var sendConnectionMessage = function(aMessage, serverPort) {
     return new Promise((resolve, reject) => {
-      debug('POLYFILL SVR sendConnectionMessage...' + (aMessage ? JSON.stringify(aMessage):
-                                         'Didn\'t receive a msg to send'));
+      debug('POLYFILL SVR sendConnectionMessage...' +
+            (aMessage ? JSON.stringify(aMessage):
+                        'Didn\'t receive a msg to send'));
       navigator.serviceWorker.ready.then(sw => {
-        debug('POLYFILL SVR sendConnectionMessage: Got a sw: ' + JSON.stringify(sw));
+        debug('POLYFILL SVR sendConnectionMessage: Got a sw: ' +
+              JSON.stringify(sw));
 
         var message = getMessage(aMessage);
 
-        debug('POLYFILL SVR Created the connection message:' + JSON.stringify(message));
+        debug('POLYFILL SVR Created the connection message:' +
+              JSON.stringify(message));
 
         // This should send the message data as well as transferring
         // messageChannel.port2 to the service worker.
@@ -73,7 +77,8 @@
         messageChannel.port1.onmessage = function(event) {
           // We will get the answer for this communication here...
           if (event.data.error) {
-            debug("POLYFILL SVR Got an error as a response: " + event.data.error);
+            debug("POLYFILL SVR Got an error as a response: " +
+                  event.data.error);
           } else {
             // The first answer we will get is just the accept or reject, which
             // we can use to remove this.
@@ -85,13 +90,15 @@
               messageChannel.port1.onmessage = function(messageEvent) {
                 // Here we have to pass this message to the other side of the
                 // IAC connection...
-                debug('POLYFILL SVR svr send By IAC:' + JSON.stringify(messageEvent.data));
+                debug('POLYFILL SVR svr send By IAC:' +
+                      JSON.stringify(messageEvent.data));
                 serverPort.postMessage(messageEvent.data);
               };
 
               // Set the event handler for response messages
               serverPort.onmessage = evt => {
-                debug('POLYFILL SVR serverPort.onmessage:' + JSON.stringify(evt.data));
+                debug('POLYFILL SVR serverPort.onmessage:' +
+                      JSON.stringify(evt.data));
                 messageChannel.port1.postMessage(evt.data);
               };
               messageChannel.port1.onmessage(event);
@@ -104,7 +111,8 @@
           }
         };
 
-        debug('POLYFILL SVR Sending message to the SW: ' + (sw.active?' sw active':'sw NO active'));
+        debug('POLYFILL SVR Sending message to the SW: ' +
+              (sw.active?' sw active':'sw NO active'));
         sw.active && sw.active.postMessage(message, [messageChannel.port2]);
         // We could probably do this earlier...
         serverPort.start();
