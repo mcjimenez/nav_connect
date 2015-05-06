@@ -5,7 +5,7 @@
   var AUTH_FILE = 'https://mcjimenez.github.io/nav_connect/resources/auth.json';
 
   var allowedFrom = {
-    'https://AAAAmcjimenez.github.io/nav_connect' : []
+    'https://mcjimenez.github.io/nav_connect' : []
   };
 
   function debug(str) {
