@@ -70,9 +70,7 @@ this.onconnect = function(msg) {
 this.messageListener = evt => {
   // This is a hack caused by the lack of dedicated MessageChannels... sorry!
   debug('SW onmessage ---> '+ JSON.stringify(evt.data));
-  for (var elem in evt.data) {
-    debug('SW ' + elem + ":" + JSON.stringify(evt.data));
-  }
+
   // ADDED FOR POLYFILL
   // Since we're using the same channel to process messages comming from the
   // main thread of the app to the SW, and messages coming from the
