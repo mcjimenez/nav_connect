@@ -7,7 +7,7 @@
   }
 
   function debug(str) {
-    console.log("NC POLYFILL SVR -*- -->" + str);
+    console.log("CJC -*-:" + str);
   }
 
   var cltCount = 0;
@@ -19,7 +19,7 @@
   // will only include connection data (such as the origin), and not any client
   // data.
   var getDefaultMsg = function() {
-    debug('getDefaultMsg called');
+    debug('POLYFILL SVR getDefaultMsg called');
     return {
       data: {
         data: "Hello from the main thread!",
@@ -46,20 +46,24 @@
 
   }
 
-  // Sends a message to the SW shim part. Note that this will be used only for connections
-  // serverPort will hold the IAC port we will use to transmit the answers on this
-  // channel to. Note that at this point the IAC channel is *not* multiplexed, so there's
-  // one IAC channel (and one MessageChannel) per navigator.connect call.
+  // Sends a message to the SW shim part. Note that this will be used only for
+  // connections serverPort will hold the IAC port we will use to transmit the
+  // answers on this channel to. Note that at this point the IAC channel is
+  // *not* multiplexed, so there's one IAC channel (and one MessageChannel) per
+  // navigator.connect call.
   var sendConnectionMessage = function(aMessage, serverPort) {
     return new Promise((resolve, reject) => {
-      debug('sendConnectionMessage...' + (aMessage ? JSON.stringify(aMessage):
-                                         'Didn\'t receive a msg to send'));
+      debug('POLYFILL SVR sendConnectionMessage...' +
+            (aMessage ? JSON.stringify(aMessage):
+                        'Didn\'t receive a msg to send'));
       navigator.serviceWorker.ready.then(sw => {
-        debug('sendConnectionMessage: Got a sw: ' + JSON.stringify(sw));
+        debug('POLYFILL SVR sendConnectionMessage: Got a sw: ' +
+              JSON.stringify(sw));
 
         var message = getMessage(aMessage);
 
-        debug('Created the connection message:' + JSON.stringify(message));
+        debug('POLYFILL SVR Created the connection message:' +
+              JSON.stringify(message));
 
         // This should send the message data as well as transferring
         // messageChannel.port2 to the service worker.
@@ -73,11 +77,12 @@
         messageChannel.port1.onmessage = function(event) {
           // We will get the answer for this communication here...
           if (event.data.error) {
-            debug("Got an error as a response: " + event.data.error);
+            debug("POLYFILL SVR Got an error as a response: " +
+                  event.data.error);
           } else {
             // The first answer we will get is just the accept or reject, which
             // we can use to remove this.
-            debug("Got an answer for the request!: " +
+            debug("POLYFILL SVR Got an answer for the request!: " +
                   JSON.stringify(event.data));
             // Here I have to check if the connection was accepted...
             if (event.data.accepted) {
@@ -85,24 +90,29 @@
               messageChannel.port1.onmessage = function(messageEvent) {
                 // Here we have to pass this message to the other side of the
                 // IAC connection...
-                debug('svr send By IAC:' + JSON.stringify(messageEvent.data));
+                debug('POLYFILL SVR svr send By IAC:' +
+                      JSON.stringify(messageEvent.data));
                 serverPort.postMessage(messageEvent.data);
               };
 
               // Set the event handler for response messages
               serverPort.onmessage = evt => {
-                debug('serverPort.onmessage:' + JSON.stringify(evt.data));
+                debug('POLYFILL SVR serverPort.onmessage:' +
+                      JSON.stringify(evt.data));
                 messageChannel.port1.postMessage(evt.data);
               };
               messageChannel.port1.onmessage(event);
 
             } else {
+              debug('POLYFILL SVR send reject msg?:' + event.data);
+              serverPort.postMessage(event.data);
               delete messageChannel.port1;
             }
           }
         };
 
-        debug('Sending message to the SW: ' + (sw.active?' sw active':'sw NO active'));
+        debug('POLYFILL SVR Sending message to the SW: ' +
+              (sw.active?' sw active':'sw NO active'));
         sw.active && sw.active.postMessage(message, [messageChannel.port2]);
         // We could probably do this earlier...
         serverPort.start();
@@ -119,11 +129,11 @@
 
       var request = navigator.mozApps.getSelf();
       request.onsuccess = domReq => {
-        debug('NavigatorConnectServerIAC - onsuccess getSelf');
+        debug('POLYFILL SVR NavigatorConnectServerIAC - onsuccess getSelf');
         var app = domReq.target.result;
         var manifest  = app.manifest;
         if (!manifest || !manifest.connections) {
-          debug('Manifest does not have connections defined');
+          debug('POLYFILL SVR Manifest does not have connections defined');
           this.connectionsURL = [];
         }
         for (var key in manifest.connections) {
@@ -142,11 +152,11 @@
 
       onConnection: function (request) {
         if (this.connectionsURL.indexOf(request.keyword) < 0) {
-          debug('IAC.onconnection: no urls registered.');
+          debug('POLYFILL SVR IAC.onconnection: no urls registered.');
           return;
         }
         var port = this.port = request.port;
-        debug('IAC.onconnection: Sending conexion msg.');
+        debug('POLYFILL SVR IAC.onconnection: Sending conexion msg.');
         // Sends a connection request to the service worker
 
         // Waits for the first message before sending anything to the service
@@ -154,7 +164,7 @@
         // The first message received will hold the origin URL. This is *not* secure
         // but IAC does not pass the origin of the IAC messages.
         port.onmessage = aMessage => {
-          debug('SVR: 1st port.onmessage: ' + JSON.stringify(aMessage) +
+          debug('POLYFILL SVR: 1st port.onmessage: ' + JSON.stringify(aMessage) +
                 ', ' + JSON.stringify(aMessage.data));
           var originURL = aMessage.data.originURL;
           sendConnectionMessage({
@@ -168,7 +178,7 @@
     return {
       start: function() {
         if (!started) {
-          debug('Initializing IAC server');
+          debug('POLYFILL SVR Initializing IAC server');
           // Yes, it sucks. I'll change it at some point, this shouldn't even be an object.
           new IAC();
           started = true;

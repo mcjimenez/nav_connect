@@ -53,7 +53,12 @@
           debug('CLIENT Send msg ' + i);
           port.postMessage({'origin': 'client', 'secuence': i});
         }
-    });
+    }).catch(
+      error => {
+        debug('CLIENT connection refused:' + JSON.stringify(error));
+        _addTxt('navigator.connect failed. ' + JSON.stringify(error), whatEntry);
+      }
+    );
   };
 
   ClientConnect.prototype = {
@@ -69,4 +74,5 @@
     _select.addEventListener('change', changeSelect);
     _select.selectedIndex = 0;
   });
+
 })(this);

@@ -11,8 +11,10 @@ function debug(str) {
 }
 
 // ADDED FOR POLYFILL: Import the polyfill script
-this.importScripts('/swpolyfill/polyfill/navigator_connect_sw.js');
+this.importScripts('/nav_connect/service/polyfill/navigator_connect_sw.js');
 // END ADDED FOR POLYFILL
+
+this.importScripts('/nav_connect/service/js/authHelper.js');
 
 this.addEventListener('install', function(evt) {
   debug('SW Install event');
@@ -36,7 +38,8 @@ this.onconnect = function(msg) {
         (msg.source.postMessage ? 'yes!' : 'no :('));
   // msg.source should have the endpoint to send and receive messages,
   // so we can do:
-  msg.acceptConnection(true);
+  debug('SW Trying to connect from: ' + msg.targetURL);
+  msg.acceptConnection(this.authHelper.isAllowed(msg.targetURL));
   msg.source.onmessage = aMsg => {
     debug('SW SETTING msg received:' + JSON.stringify(aMsg.data));
     var setting = aMsg.data.setting;
@@ -67,6 +70,7 @@ this.onconnect = function(msg) {
 this.messageListener = evt => {
   // This is a hack caused by the lack of dedicated MessageChannels... sorry!
   debug('SW onmessage ---> '+ JSON.stringify(evt.data));
+
   // ADDED FOR POLYFILL
   // Since we're using the same channel to process messages comming from the
   // main thread of the app to the SW, and messages coming from the
@@ -83,10 +87,10 @@ this.messageListener = evt => {
   // The only message we should get here is a MessageChannel to talk back to
   // the main thread... so...
   if (evt.ports && evt.ports[0]) {
-    debug('Got a channel from the parent');
+    debug('SW Got a channel from the parent');
     this.resolveChannel(evt.ports[0]);
   } else {
-    debug('Did not got a channel!');
+    debug('SW Did not got a channel!');
     this.rejectChannel('I did not got a channel');
   }
   // And I can remove the listener, I don't need this anymore

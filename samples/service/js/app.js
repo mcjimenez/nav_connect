@@ -13,7 +13,7 @@
 
   var register = function(evt) {
     debug('APP executing register...');
-    navigator.serviceWorker.register('/swshim/sw.js', {scope: './'}
+    navigator.serviceWorker.register('/nav_connect/service/sw.js', {scope: './'}
     ).then(function(reg) {
       debug('APP Registration succeeded. Scope: ' + reg.scope);
       if (reg.installing) {
@@ -42,6 +42,7 @@
     // Your code here
     // from this point on, you would write your handler as if the shim wasn't
     // present.
+    debug('APP processSWRequest:'+JSON.stringify(evt.data));
     var sett = evt.data.setting;
     if (!sett) {
       // Return no setting msg
@@ -60,6 +61,7 @@
     debug('APP serviceWorker in navigator');
     register();
     navigator.serviceWorker.ready.then(sw => {
+      debug('APP --> SW READY creating messageChannel');
       // Let's pass the SW some way to talk to us...
       var mc = new MessageChannel();
       mc.port1.onmessage = processSWRequest.bind(this, mc.port1);

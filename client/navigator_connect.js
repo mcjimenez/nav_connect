@@ -11,7 +11,7 @@
     this.iacPort = iacPort;
     this.iacPort.onmessage = e => {
       debug('SHIM CLIENT : received IAC msg:' + JSON.stringify(e.data));
-      this.onmessage && this.onmessage(e);
+      this._onmessage && this._onmessage(e);
     };
     this.iacPort.start();
   }
@@ -23,7 +23,11 @@
     },
 
     set onmessage(fc) {
-      this.iacPort.onmessage = evt => fc(evt);
+      this._onmessage = fc;
+    },
+
+    get onmessage() {
+      return this._onmessage;
     }
   };
 
@@ -36,7 +40,7 @@
       request.onsuccess = domReq => {
         var app = domReq.target.result;
         if (!app.connect) {
-          reject("we don't have iac");
+          reject('We don\'t have iac');
         }
         app.connect(where).then(
           ports => {
@@ -53,11 +57,13 @@
                 debug("SHIM ClIENT - Got the accept response: evt.data: " +
                       JSON.stringify(evt.data));
                 shimPort.onmessage = null;
-                evt.data.accepted && resolve(shimPort) || reject();
+                evt.data.accepted && resolve(shimPort) ||
+                                     reject('Connection not allowed');
               };
             }
           },
           reason => {
+            debug('SHIM CLIENT - Connection rejected. Reason:' + reason);
             reject(reason);
           }
         );
