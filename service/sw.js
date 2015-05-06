@@ -14,8 +14,7 @@ function debug(str) {
 this.importScripts('/nav_connect/service/polyfill/navigator_connect_sw.js');
 // END ADDED FOR POLYFILL
 
-this.importScripts('/nav_connect/service/js/config.js');
-this.importScripts('/nav_connect/service/js/service.js');
+this.importScripts('/nav_connect/service/js/authHelper.js');
 
 this.addEventListener('install', function(evt) {
   debug('SW Install event');
@@ -40,7 +39,7 @@ this.onconnect = function(msg) {
   // msg.source should have the endpoint to send and receive messages,
   // so we can do:
   debug('SW Trying to connect from: ' + msg.targetURL);
-  msg.acceptConnection(this.utils.isAllowed(msg.targetURL));
+  msg.acceptConnection(this.authHelper.isAllowed(msg.targetURL));
   msg.source.onmessage = aMsg => {
     debug('SW SETTING msg received:' + JSON.stringify(aMsg.data));
     var setting = aMsg.data.setting;
