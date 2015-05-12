@@ -259,6 +259,11 @@ kinda defeats the whole point.
 or the patch applied
 (https://bugzilla.mozilla.org/show_bug.cgi?id=911972).
 
+Connect sequence diagram:
+https://drive.google.com/file/d/0B8rKvySkAbANNm85aDdBTHNZak0/view?usp=sharing
+
+![Connect sequence diagram](https://github.com/mcjimenez/nav_connect/blob/usemessagechannel/connectSequenceDiagram.jpg?raw=true)
+
 BTW, thanks :baku for
 providing us with a rebased patch! It works beautifully!)
 
