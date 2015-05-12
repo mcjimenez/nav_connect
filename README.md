@@ -28,12 +28,12 @@ capabilities on a way that was both:
   standarizable APIs).
 
 A way of doing so is implementing on the devices a special kind of
-'Service' applications. Those applications will expose access to some
+'Mediator' applications. Those applications will expose access to some
 of the underlying capabilities on a web way. Let's see it with an
 example:
 
-#### Sample service
-Let's assume that the device has a service called SMS that gives
+#### Sample Mediator
+Let's assume that the device has a Mediator called SMS that gives
 access to reading and sending SMS, for a set of origins and
 numbers. This device is configured by a network downloaded (and
 signed) json file that holds something like:
@@ -59,16 +59,16 @@ read them from a number that's read from a setting on the device.
 
 ##### Client code
 
-So let's suppose we're writing a service that allows the user to
+So let's suppose we're writing a Mediator that allows the user to
 identify their phone via SMS, or to send random SMS to a random
 number from a web site, even when loading that site on desktop!
 The client code might look like:
 
 ```
-var SMS_SERVICE = 'https://smsservice.gaiamobile.org/app.pak!//smsworker.js';
+var SMS_MEDIATOR = 'https://smsmediator.gaiamobile.org/app.pak!//smsworker.js';
 
-navigator.connect(SMS_SERVICE).then(port => {
-// Send a SMS from the device.... The actual data will be defined per service!
+navigator.connect(SMS_MEDIATOR).then(port => {
+// Send a SMS from the device.... The actual data will be defined per mediator!
   port.postMessage({
     command: 'send',
     data: {number: 'setting:myhome.number', smsText: 'Hi from your phone!'}});
@@ -89,10 +89,10 @@ navigator.connect(SMS_SERVICE).then(port => {
     }
   };
 }).catch(error => {
-  // Either the service is not available, or the connection was
+  // Either the mediator is not available, or the connection was
   // rejected. Let's assume it was the first one...
-  showWarning("You should visit the site https://smsservice.gaiamobile.org" +
-              " and configure your access if you want to use this service");
+  showWarning("You should visit the site https://smsmediator.gaiamobile.org" +
+              " and configure your access if you want to use this mediator");
 });
 
 ```
@@ -102,11 +102,11 @@ or not. Because it doesn't matter. Because it should work the same on
 *any* browser (that has implemented navigator.connect or uses a
 polyfill) on *any* environment.
 
-##### Service code
+##### Mediator code
 
-On https://smsservice.gaiamobile.org/app.pak!//smsworker.js, which
+On https://smsmediator.gaiamobile.org/app.pak!//smsworker.js, which
 will have to be pre-registered (by some page on
-https://smsservice.gaiamobile.org/app.pak, and we're supposing we're
+https://smsmediator.gaiamobile.org/app.pak, and we're supposing we're
 going with the packaged app proposal, although it's really irrelevant
 for this:
 
@@ -172,12 +172,12 @@ happens:
 
   * If a push message is received, check that the operation is
      allowed, execute it locally, and send the answer back to the
-     server (https://smsservice.gaiamobile.org)
+     server (https://smsmediator.gaiamobile.org)
 
 * On desktop:
 
   * If a connection request or a message is received then it sees if
-  the user has associated (on https://smsservice.gaiamobile.org!) a
+  the user has associated (on https://smsmediator.gaiamobile.org!) a
   mobile device and it sends the order to the device, using push to
   awaken it.
 
@@ -189,10 +189,10 @@ happens:
 ### Ok, but why navigator.connect?
 
 Because as we said before, part of the reason is having an *standard*
-way of calling services. And while navigator.connect is not an
+way of calling mediators. And while navigator.connect is not an
 standard, it's at least been implemented in some way by other browser
 (chrome) and as such it has one more implementor than IAC. So this was
-done as a proof-of-concept of building that kind of services over
+done as a proof-of-concept of building that kind of mediators over
 navigator.connect.
 
 That said, the idea is the same if the actual API
@@ -251,7 +251,7 @@ pref('dom.apps.developer_mode', true);
 ```
 
 * Also, since at this point IAC is certified only, either you patch that
-out or both the client and service apps have to be certified, which
+out or both the client and mediator apps have to be certified, which
 kinda defeats the whole point.
 
 * If you want to use the version that is on the usemessagechannel branch
