@@ -254,11 +254,6 @@ pref('dom.apps.developer_mode', true);
 out or both the client and mediator apps have to be certified, which
 kinda defeats the whole point.
 
-* If you want to use the version that is on the usemessagechannel branch
-(which is way nicer!), you must have a build where Bug 911972 is fixed
-or the patch applied
-(https://bugzilla.mozilla.org/show_bug.cgi?id=911972).
-
 Connect sequence diagram:
 https://drive.google.com/file/d/0B8rKvySkAbANNm85aDdBTHNZak0/view?usp=sharing
 
