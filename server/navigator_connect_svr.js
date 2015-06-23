@@ -1,7 +1,7 @@
 (function(exports) {
   'use strict';
 
-  if (exports.NCPolyfill) {
+  if (exports.NCShim) {
     return;
   }
 
@@ -14,103 +14,123 @@
   var connections = {};
   var handlerSet = false;
 
+  // To store the list of ports we've accepted... Note that at this point we're
+  // not multiplexing navigator.connect connections over IAC connections
+  // Although we could do that also.
+  var portTable = {};
+
+  // Generates an UUID. This function is not cryptographically robust, but at
+  // this moment this doesn't matter that much.
+  function generateNewUUID() {
+    var d = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
+      function(c) {
+        var r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+    debug('generateNewUUID(): ' + uuid);
+    return uuid;
+  }
+
+  // Sends a message received from the service worker to the client of the
+  // connection using IAC as the transport mechanism
+  function sendMessageByIAC(evt) {
+    debug("sendMessageByIAC. " + JSON.stringify(evt.data));
+    // evt.data.uuid has the uuid of the port we should use to send the data...
+    portTable[evt.data.uuid] &&
+      portTable[evt.data.uuid].postMessage(evt.data.data);
+  }
+
+  function registerHandlers() {
+    debug('registerHandlers');
+    NavigatorConnectServerIAC.start();
+
+    debug('registering a apps handlers');
+    navigator.serviceWorker.addEventListener('message', evt => {
+      debug('msg received:' + JSON.stringify(evt.data));
+      if (!isInternalMessage(evt)) {
+        debug('msg is not internal');
+        return;
+      }
+      // Here we have to pass this message to the other side of the
+      // IAC connection...
+      sendMessageByIAC(evt);
+    });
+  }
+
+  // Returns true if the message (from IAC) is a connection request,
+  // false otherwise.
+  var isConnectionRequest = function(message) {
+    debug('isConnectionRequest:' + message.isConnectionRequest);
+    return (message && message.isConnectionRequest ? true : false);
+  };
+
   // Returns a default, test, connection message. Normally connection messages
   // will only include connection data (such as the origin), and not any client
   // data.
   var getDefaultMsg = function() {
-    debug('getDefaultMsg called');
+    debug('getDefaultMsg');
     return {
+      isConnectionRequest: true,
       data: {
-        data: 'Hello from the main thread!',
+        data: "Hello from the main thread!",
         count: cltCount++
       },
-      originURL: 'We need an origin URL here!'
+      originURL: "We need an origin URL here!"
     };
   };
 
   // Msg from app to sw.
   // aMessage can have, as optional fields:
+  // isConnectionRequest: True if it's a connection request,
+  //                      false if it's a message
   // data: The data that the original message had
+  // uuid: The uuid of the virtual channel to use, or null/undefined to create a
+  //       new channel
   // and as a MANDATORY field:
   // originURL: The originator of the message
-  function getMessage(aMessage) {
-    // We must construct a structure here to indicate our sw partner that
-    // we got a message and how to answer it.
-    aMessage = aMessage || getDefaultMsg();
-    return {
-      isFromIAC: true,
-      originURL: aMessage.originURL,
-      dataToSend: aMessage.data
-    };
-
-  }
-
-  // Sends a message to the SW shim part. Note that this will be used only for
-  // connections serverPort will hold the IAC port we will use to transmit the
-  // answers on this channel to. Note that at this point the IAC channel is
-  // *not* multiplexed, so there's one IAC channel (and one MessageChannel) per
-  // navigator.connect call.
-  var sendConnectionMessage = function(aMessage, serverPort) {
+  var sendMessage = function(aMessage) {
     return new Promise((resolve, reject) => {
-      debug('sendConnectionMessage...' + (aMessage ? JSON.stringify(aMessage):
-                                         'Didn\'t receive a msg to send'));
+      debug('sendMessage...' + (aMessage ? JSON.stringify(aMessage):
+                                         'No received msg to send'));
       navigator.serviceWorker.ready.then(sw => {
-        debug('sendConnectionMessage: Got a sw: ' + JSON.stringify(sw));
+        debug('Got regs: ' + JSON.stringify(sw));
+        // We must construct a structure here to indicate our sw partner that
+        // we got a message and how to answer it.
+        aMessage = aMessage || getDefaultMsg();
+        aMessage.uuid = aMessage.uuid || generateNewUUID();
 
-        var message = getMessage(aMessage);
+        var message = {
+          isFromIAC: true,
+          isConnectionRequest: isConnectionRequest(aMessage),
+          uuid: aMessage.uuid,
+          originURL: aMessage.originURL,
+          dataToSend: aMessage.data
+        };
 
-        debug('Created the connection message:' + JSON.stringify(message));
+        debug('msg creado:'+JSON.stringify(message));
 
-        // This should send the message data as well as transferring
+        // This should sends the message data as well as transferring
         // messageChannel.port2 to the service worker.
         // The service worker can then use the transferred port to reply via
         // postMessage(), which will in turn trigger the onmessage handler on
         // messageChannel.port1.
         // See
         // https://html.spec.whatwg.org/multipage/workers.html#dom-worker-postmessage
-
-        var messageChannel = new MessageChannel();
-        messageChannel.port1.onmessage = function(event) {
-          // We will get the answer for this communication here...
-          if (event.data.error) {
-            debug('Got an error as a response: ' + event.data.error);
-          } else {
-            // The first answer we will get is just the accept or reject, which
-            // we can use to remove this.
-            debug('Got an answer for the request!: ' +
-                  JSON.stringify(event.data));
-            // Here I have to check if the connection was accepted...
-            if (event.data.accepted) {
-              // And replace the event handler to process messages!
-              messageChannel.port1.onmessage = function(messageEvent) {
-                // Here we have to pass this message to the other side of the
-                // IAC connection...
-                debug('svr send By IAC:' + JSON.stringify(messageEvent.data));
-                serverPort.postMessage(messageEvent.data);
-              };
-
-              // Set the event handler for response messages
-              serverPort.onmessage = evt => {
-                debug('serverPort.onmessage:' + JSON.stringify(evt.data));
-                messageChannel.port1.postMessage(evt.data);
-              };
-              messageChannel.port1.onmessage(event);
-
-            } else {
-              debug('Send reject msg:' + event.data);
-              serverPort.postMessage(event.data);
-              delete messageChannel.port1;
-            }
-          }
-        };
-
-        debug('Sending message to the SW: ' +
-              (sw.active ?' sw active':'sw NO active'));
-        sw.active && sw.active.postMessage(message, [messageChannel.port2]);
-        // We could probably do this earlier...
-        serverPort.start();
+        // Unfortunately, that does not work on Gecko currently
+        debug('sending message ' + (sw.active?' sw active':'sw NO active'));
+        sw.active && sw.active.postMessage(message);
+        resolve(aMessage.uuid);
       });
     });
+  };
+
+  // Distinguish when a message from the SW is internal of
+  // navigator.connect or not. Currently we just check if the message includes
+  // an uuid or not.
+  function isInternalMessage(evt) {
+    return evt.data.uuid;
   };
 
   // Create a listener service for the IAC messages.
@@ -126,7 +146,7 @@
         var app = domReq.target.result;
         var manifest  = app.manifest;
         if (!manifest || !manifest.connections) {
-          debug('Manifest does not have connections defined');
+          debug('manifest does not have connections defined');
           this.connectionsURL = [];
         }
         for (var key in manifest.connections) {
@@ -145,35 +165,44 @@
 
       onConnection: function (request) {
         if (this.connectionsURL.indexOf(request.keyword) < 0) {
-          debug('IAC.onconnection: no urls registered.');
+          debug('No urls registered');
           return;
         }
         var port = this.port = request.port;
-        debug('IAC.onconnection: Sending conexion msg.');
-        // Sends a connection request to the service worker
-
-        // Waits for the first message before sending anything to the service
+        debug('Sending conexion msg');
+        // Send a connection request to the service worker
+        // Wait for the first message before sending anything to the service
         // worker.
-        // The first message received will hold the origin URL. This is *not*
-        // secure but IAC does not pass the origin of the IAC messages.
+        // The first message received will hold the origin URL
         port.onmessage = aMessage => {
-          debug('SVR: 1st port.onmessage: ' + JSON.stringify(aMessage) +
-                ', ' + JSON.stringify(aMessage.data));
+          debug('1st port.onmessage: ' + JSON.stringify(aMessage) + ', ' +
+                JSON.stringify(aMessage.data));
           var originURL = aMessage.data.originURL;
-          sendConnectionMessage({
-              originURL: originURL,
-              data: null}, port);
+          sendMessage({ isConnectionRequest: true,
+                        originURL: originURL,
+                        data: null}).then(uuid => {
+            debug('sent connection message with uuid:' + uuid);
+            // TO-DO: This should be done only when the connection is actually
+            // accepted. We don't want to send messages to the SW otherwise
+            portTable[uuid] = port;
+            port.onmessage = this.onmessage.bind(this, uuid, originURL);
+            port.start();
+           });
         };
-      }
+      },
 
+      onmessage: function(uuid, originURL, evt) {
+        sendMessage({ originURL: originURL,
+                      data: evt.data,
+                      uuid: uuid });
+      }
     };
 
     return {
       start: function() {
         if (!started) {
-          debug('Initializing IAC server');
-          // Yes, it sucks. I'll change it at some point, this shouldn't even be
-          // an object.
+          debug('SHIM SVR initializing IAC server');
+          // Yes, it sucks. I'll change it
           new IAC();
           started = true;
         }
@@ -181,15 +210,16 @@
     };
   })();
 
-  navigator.serviceWorker.ready.then(NavigatorConnectServerIAC.start);
+  navigator.serviceWorker.ready.then(registerHandlers);
 
   // This whole object should not be needed, except for tests, if
   // MessageChannel did work.
   // Since it doesn't work for Service Workers, it's needed, sadly.
-  exports.NCPolyfill = {
+  exports.NCShim = {
     // sendMessage exported only for tests!
-    sendMessage: sendConnectionMessage
+    sendMessage: sendMessage,
     // And this is needed only because MessageChannel doesn't currently work!
+    isInternalMessage: isInternalMessage
   };
 
 })(window);

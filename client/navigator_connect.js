@@ -1,4 +1,5 @@
 (function (exports) {
+
   'use strict';
 
   function debug(str) {
@@ -30,52 +31,8 @@
     }
   };
 
-  // *cough*hack*cough*
-  // This should not really be needed (and adding it here because it's
-  // easier than to find the root cause ATM). When opening several apps
-  // thru IAC at the same time, one of them dies out messily. So throttling them
-  var pendingConnection = null;
-
   var connectShim = function(where) {
-
     return new Promise((resolve, reject) => {
-      function waitMyTurn(app) {
-        if (!pendingConnection) {
-          debug('No other connection pending, processing ' + where);
-          pendingConnection = app.connect(where);
-          pendingConnection.then(
-            ports => {
-              pendingConnection = null;
-              debug('IAC connection established');
-              if (ports && ports.length > 0) {
-                var shimPort = new Port(ports[0]);
-                // At this point we have transport. Since IAC doesn't tell the
-                // receiver the URL of the page that's connecting (which is
-                // strange, TO-DO check that) We have to pass that data. This
-                // is unsecure as hell...
-                shimPort.postMessage({ originURL: document.location.href });
-
-                shimPort.onmessage = function(evt) {
-                  debug('Got the accept response. evt.data: ' +
-                        JSON.stringify(evt.data));
-                  shimPort.onmessage = null;
-                  evt.data.accepted && resolve(shimPort) ||
-                                       reject('Connection not allowed');
-                };
-              }
-            },
-            reason => {
-              pendingConnection = null;
-              debug('Connection rejected. Reason:' + reason);
-              reject(reason);
-            }
-          );
-        } else {
-          debug('There\'s a pending connection, waiting ' + where);
-          pendingConnection.then(() => waitMyTurn(app));
-        }
-      }
-
       if (!where) {
         reject('where connect unknow');
       }
@@ -83,9 +40,31 @@
       request.onsuccess = domReq => {
         var app = domReq.target.result;
         if (!app.connect) {
-          reject('We don\'t have iac');
+          reject("we don't have iac");
         }
-        waitMyTurn(app);
+        app.connect(where).then(
+          ports => {
+            debug('IAC connection established');
+            if (ports && ports.length > 0) {
+              var shimPort = new Port(ports[0]);
+              // At this point we have transport. Since IAC doesn't tell the
+              // receiver the URL of the page that's connecting (which is
+              // strange, TO-DO check that) We have to pass that data. This
+              // is unsecure as hell...
+              shimPort.postMessage({ originURL: document.location.href });
+
+              shimPort.onmessage = function(evt) {
+                debug("Got the accept response: evt.data: " +
+                      JSON.stringify(evt.data));
+                shimPort.onmessage = null;
+                evt.data.accepted && resolve(shimPort) || reject();
+              };
+            }
+          },
+          reason => {
+            reject(reason);
+          }
+        );
       };
 
       request.onerror = dReq => {
