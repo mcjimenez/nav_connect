@@ -11,7 +11,7 @@
     var origin = document.location.origin;
     // Could get this from the href but not really worth the hassle
     var realPath = origin + '/' + I + '/' + what + '/manifest.webapp';
-adb.logcat('CJC:' + realPath);
+console.log('CJC:' + realPath);
     navigator.mozApps.install(realPath);
   }
 
