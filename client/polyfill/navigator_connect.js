@@ -53,7 +53,7 @@
                 // receiver the URL of the page that's connecting (which is
                 // strange, TO-DO check that) We have to pass that data. This
                 // is unsecure as hell...
-                shimPort.postMessage({ originURL: document.location.href });
+            // YA no!!    shimPort.postMessage({ originURL: document.location.href });
 
                 shimPort.onmessage = function(evt) {
                   debug('Got the accept response. evt.data: ' +
